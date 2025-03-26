@@ -25,12 +25,14 @@ type RestData struct {
 	Private      bool   `json:"private"`
 	WebsiteURL   string `json:"websiteUrl"`
 	Releases     []ReleaseData
-	Contents     struct {
-		TopLevel  []DirContents
-		ForgeDir  []DirContents
-		WorkFlows []DirFile
-	}
-	Rulesets []Ruleset
+	Contents     Contents
+	Rulesets     []Ruleset
+}
+
+type Contents struct {
+	TopLevel  []DirContents
+	ForgeDir  []DirContents
+	WorkFlows []DirFile
 }
 
 type Ruleset struct {
