@@ -270,9 +270,7 @@ func parseMarkdownHeadings(content []byte) []string {
 }
 
 func (r *RestData) loadSecurityInsights() {
-	// TODO: si package should define a const for the expected file name
-	insightsFilename := "security-insights.yml"
-	filepath := r.checkFile(insightsFilename)
+	filepath := r.checkFile(si.SecurityInsightsFilename)
 	if filepath != "" {
 		insights, err := si.Read(r.owner, r.repo, filepath)
 		r.Insights = insights
