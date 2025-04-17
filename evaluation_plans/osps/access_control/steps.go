@@ -11,12 +11,11 @@ func orgRequiresMFA(payloadData interface{}, _ map[string]*layer4.Change) (resul
 	if message != "" {
 		return layer4.Unknown, message
 	}
-
-	required := payload.Organization.TwoFactorRequired
-
-	if required == nil {
+	if payload.RepositoryMetadata.UnableToEvaluateMFARequirement() {
 		return layer4.NeedsReview, "Not evaluated. Two-factor authentication evaluation requires a token with org:admin permissions, or manual review"
-	} else if *required {
+	}
+	required := payload.RepositoryMetadata.IsMFARequiredForAdministrativeActions()
+	if required {
 		return layer4.Passed, "Two-factor authentication is configured as required by the parent organization"
 	}
 	return layer4.Failed, "Two-factor authentication is NOT configured as required by the parent organization"

@@ -15,7 +15,7 @@ func repoIsPublic(payloadData interface{}, _ map[string]*layer4.Change) (result 
 		return layer4.Unknown, message
 	}
 
-	if !data.Repository.IsPrivate {
+	if data.RepositoryMetadata.IsPublic() {
 		return layer4.Passed, "Repository is public"
 	}
 

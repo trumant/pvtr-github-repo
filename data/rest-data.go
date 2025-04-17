@@ -14,54 +14,20 @@ import (
 )
 
 type RestData struct {
-	owner        string
-	repo         string
-	token        string
-	Config       *config.Config
-	Organization OrgData
-	Workflow     Workflow
-	Insights     si.SecurityInsights
-	Name         string `json:"name"`
-	Private      bool   `json:"private"`
-	WebsiteURL   string `json:"websiteUrl"`
-	Releases     []ReleaseData
-	Contents     Contents
-	Rulesets     []Ruleset
+	Config   *config.Config
+	Workflow Workflow
+	Insights si.SecurityInsights
+	Name     string `json:"name"`
+	Private  bool   `json:"private"`
+	Releases []ReleaseData
+	Contents Contents
+	Rulesets []Ruleset
 }
 
 type Contents struct {
 	TopLevel  []DirContents
 	ForgeDir  []DirContents
 	WorkFlows []DirFile
-}
-
-type Ruleset struct {
-	Type       string `json:"type"`
-	Parameters struct {
-		RequiredChecks []struct {
-			Context string `json:"context"`
-		} `json:"required_status_checks"`
-	} `json:"parameters"`
-}
-
-type OrgData struct {
-	Name               string        `json:"name"`
-	Blog               string        `json:"blog"`
-	WebSignoffRequired bool          `json:"web_commit_signoff_required"`
-	TwoFactorRequired  *nullableBool `json:"two_factor_requirement_enabled"`
-}
-
-type ReleaseData struct {
-	Id      int            `json:"id"`
-	Name    string         `json:"name"`
-	TagName string         `json:"tag_name"`
-	URL     string         `json:"url"`
-	Assets  []ReleaseAsset `json:"assets"`
-}
-
-type ReleaseAsset struct {
-	Name        string `json:"name"`
-	DownloadURL string `json:"browser_download_url"`
 }
 
 type DirContents struct {
@@ -112,9 +78,6 @@ func (n *nullableBool) UnmarshalJSON(data []byte) error {
 }
 
 func (r *RestData) Setup() error {
-	r.owner = r.Config.GetString("owner")
-	r.repo = r.Config.GetString("repo")
-	r.token = r.Config.GetString("token")
 
 	_ = r.getMetadata()
 	r.getTopDirContents()
@@ -122,7 +85,6 @@ func (r *RestData) Setup() error {
 	r.loadSecurityInsights()
 	_ = r.getWorkflow()
 	_ = r.getReleases()
-	r.loadOrgData()
 	_ = r.getWorkflowFiles()
 	return nil
 }
@@ -306,15 +268,6 @@ func (r *RestData) getForgeDirContents() {
 	_ = json.Unmarshal(responseData, &r.Contents.ForgeDir)
 }
 
-func (r *RestData) getMetadata() error {
-	endpoint := fmt.Sprintf("%s/repos/%s/%s", APIBase, r.owner, r.repo)
-	responseData, err := r.MakeApiCall(endpoint, true)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(responseData, &r)
-}
-
 func (r *RestData) getReleases() error {
 	endpoint := fmt.Sprintf("%s/repos/%s/%s/releases", APIBase, r.owner, r.repo)
 	responseData, err := r.MakeApiCall(endpoint, true)
@@ -337,16 +290,6 @@ func (r *RestData) getWorkflow() error {
 	return err
 }
 
-func (r *RestData) loadOrgData() {
-	endpoint := fmt.Sprintf("%s/orgs/%s", APIBase, r.owner)
-	responseData, err := r.MakeApiCall(endpoint, true)
-	if err != nil {
-		r.Config.Logger.Error(fmt.Sprintf("error getting org data: %s (%s)", err.Error(), endpoint))
-		return
-	}
-	_ = json.Unmarshal(responseData, &r.Organization)
-}
-
 func (r *RestData) GetRulesets(branchName string) []Ruleset {
 	endpoint := fmt.Sprintf("%s/repos/%s/%s/rules/branches/%s", APIBase, r.owner, r.repo, branchName)
 	responseData, err := r.MakeApiCall(endpoint, true)
@@ -355,6 +298,5 @@ func (r *RestData) GetRulesets(branchName string) []Ruleset {
 	}
 
 	_ = json.Unmarshal(responseData, &r.Rulesets)
-	_ = json.Unmarshal(responseData, &r.Organization)
 	return r.Rulesets
 }
