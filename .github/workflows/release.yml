@@ -33,6 +33,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.23.4
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@f8bdd1d8ac5e901a77a92f111440fdb1b593736b
+        with:
+          syft-version: v1.33.0
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a
         with:
@@ -45,3 +49,8 @@ jobs:
         uses: actions/attest-build-provenance@v3
         with:
           subject-checksums: dist/checksums.txt
+      - name: Attest SBOMs
+        uses: actions/attest-sbom@v3
+        with:
+          subject-checksums: dist/checksums.txt
+          sbom-path: 'dist/pvtr-github-repo_*.tar.gz.spdx.json'
